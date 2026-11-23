@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connected Pen-Meter Concept</title>
+<meta name="description" content="Interactive 3D concept: a connected insulin pen with a built-in glucose meter, designed around linked post-market surveillance. SHARE 2026 concept for discussion; not a real product.">
+<style>
+:root{
+  --navy:#102F46; --teal:#087F80; --soft:#E8F1F2; --off:#F7F9FA; --ink:#1F2D38; --grey:#5B6B75; --line:#CFDADF;
+  --warm:#A8641F; --warmsoft:#F6EEE5; --deep:#0B5E6E; --white:#FFFFFF;
+  --c-version:#102F46; --c-use:#087F80; --c-out:#A8641F; --c-safe:#B23A48; --c-access:#6A5BA3;
+  --bg:#F7F9FA; --panel:#FFFFFF; --text:#1F2D38; --muted:#5B6B75;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#0C1B26; --panel:#12283A; --text:#E7EEF2; --muted:#A9C3CC; --line:#24465C; --soft:#163447; --off:#0F2231; --warmsoft:#3A2A1A; } }
+:root[data-theme="dark"]{ --bg:#0C1B26; --panel:#12283A; --text:#E7EEF2; --muted:#A9C3CC; --line:#24465C; --soft:#163447; --off:#0F2231; --warmsoft:#3A2A1A; }
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%}
+a{color:var(--teal)}
+header{padding:14px 20px;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);background:var(--panel)}
+header .t{font-weight:700;font-size:18px;color:var(--text)}
+header .s{font-size:13px;color:var(--muted)}
+.badge{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.3px;color:var(--warm);background:var(--warmsoft);border:1px solid var(--warm);border-radius:999px;padding:5px 12px}
+main{display:grid;grid-template-columns:minmax(0,1fr) 380px;min-height:calc(100vh - 62px)}
+#stage{position:relative;min-height:560px;overflow:hidden;background:radial-gradient(ellipse at 50% 40%, #ffffff 0%, #E8F1F2 70%, #D8E6E9 100%)}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) #stage{background:radial-gradient(ellipse at 50% 40%, #1B3A50 0%, #0F2231 75%)} }
+:root[data-theme="dark"] #stage{background:radial-gradient(ellipse at 50% 40%, #1B3A50 0%, #0F2231 75%)}
+#stage canvas{display:block;width:100%;height:100%;touch-action:none}
+#labels{position:absolute;inset:0;pointer-events:none}
+.mk{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;cursor:pointer;width:26px;height:26px;border-radius:50%;border:2px solid #fff;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.35);transition:transform .15s}
+.mk:hover,.mk.on{transform:translate(-50%,-50%) scale(1.25)}
+.mk span{position:absolute;left:30px;white-space:nowrap;font-size:12px;font-weight:700;color:var(--navy);background:rgba(255,255,255,.92);padding:2px 7px;border-radius:4px;display:none}
+.mk.on span,.show-names .mk span{display:block}
+#toolbar{position:absolute;left:12px;top:12px;display:flex;flex-wrap:wrap;gap:8px;max-width:calc(100% - 24px)}
+button{font:inherit;font-size:14px;font-weight:700;border-radius:8px;border:1px solid var(--teal);background:var(--panel);color:var(--teal);padding:9px 13px;cursor:pointer;min-height:40px}
+button.pri{background:var(--teal);color:#fff}
+button[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+#legend{position:absolute;left:12px;top:64px;display:none;flex-wrap:wrap;gap:6px 12px;background:rgba(255,255,255,.92);border-radius:8px;padding:8px 10px;font-size:12px;color:#1F2D38;max-width:calc(100% - 24px)}
+#legend i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+#tourbar{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:min(680px,calc(100% - 24px));background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:none;box-shadow:0 4px 18px rgba(0,0,0,.12)}
+#tourbar .step{font-size:12px;font-weight:700;color:var(--teal);letter-spacing:.4px}
+#tourbar h3{margin:4px 0 4px;font-size:17px}
+#tourbar p{margin:0 0 10px;font-size:14px;line-height:1.4;color:var(--text)}
+#tourbar .row{display:flex;gap:8px;justify-content:flex-end}
+aside{background:var(--panel);border-left:1px solid var(--line);padding:18px 18px 24px;overflow:auto}
+aside h2{font-size:20px;margin:0 0 4px;color:var(--text)}
+aside .pillar{display:inline-block;font-size:12px;font-weight:700;color:#fff;border-radius:999px;padding:4px 10px;margin:6px 0 10px}
+aside h4{font-size:13px;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);margin:16px 0 4px}
+aside p{font-size:15px;line-height:1.45;margin:0}
+.hint{font-size:13px;color:var(--muted);margin-top:16px;line-height:1.4}
+section.more{max-width:1180px;margin:0 auto;padding:28px 20px 40px}
+section.more h2{font-size:24px;margin:8px 0 6px}
+section.more .lead{color:var(--muted);margin:0 0 18px;font-size:15px;line-height:1.45}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+.card h3{margin:0 0 6px;font-size:17px}
+.card p,.card li{font-size:14px;line-height:1.45}
+.card ul{padding-left:18px;margin:6px 0 0}
+.card.rec{border:2px solid var(--teal)}
+.tag{font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--teal)}
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:8px;margin-top:6px}
+.flow div{flex:1 1 150px;background:var(--soft);border-radius:8px;padding:12px;font-size:14px;line-height:1.35}
+.flow b{display:block;color:var(--teal);margin-bottom:3px}
+footer{border-top:1px solid var(--line);padding:18px 20px;font-size:13px;color:var(--muted);text-align:center;line-height:1.5}
+body.still header,body.still aside,body.still section.more,body.still footer,body.still #toolbar{display:none}
+body.still main{display:block}
+html.still,body.still{background:transparent}
+body.nomarks #labels{display:none}
+body.dots .mk{width:34px;height:34px;font-size:18px;border-width:3px}
+body.dots .mk span{display:none!important}
+body.still #stage{height:100vh;background:transparent}
+@media (max-width:900px){
+  main{grid-template-columns:1fr}
+  #stage{min-height:62vh}
+  aside{border-left:0;border-top:1px solid var(--line)}
+  .grid3{grid-template-columns:1fr}
+  button{font-size:13px;padding:8px 10px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div><div class="t">Connected Pen-Meter · interactive concept</div><div class="s">SHARE 2026 · Janyavula &amp; Ramireddy · The Apollo University</div></div>
+  <span class="badge">CONCEPT FOR DISCUSSION · NOT A REAL PRODUCT · NOT BUILT OR TESTED</span>
+</header>
+<main>
+  <div id="stage">
+    <div id="labels"></div>
+    <div id="toolbar">
+      <button id="bExplode" class="pri" aria-pressed="false">Explode view</button>
+      <button id="bTour">▶ How it works</button>
+      <button id="bLens" aria-pressed="false">Surveillance lens</button>
+      <button id="bNames" aria-pressed="false">Show names</button>
+      <button id="bSpin" aria-pressed="true">Auto-rotate</button>
+    </div>
+    <div id="legend">
+      <span><i style="background:var(--c-version)"></i>1 Software version</span>
+      <span><i style="background:var(--c-use)"></i>2 Patient engagement</span>
+      <span><i style="background:var(--c-out)"></i>3 Clinical outcomes</span>
+      <span><i style="background:var(--c-safe)"></i>Safety reporting</span>
+      <span><i style="background:var(--c-access)"></i>Access and equity</span>
+    </div>
+    <div id="tourbar" role="dialog" aria-live="polite">
+      <div class="step" id="tStep"></div>
+      <h3 id="tTitle"></h3>
+      <p id="tText"></p>
+      <div class="row"><button id="tPrev">Back</button><button id="tNext" class="pri">Next</button><button id="tClose">Close</button></div>
+    </div>
+  </div>
+  <aside id="info" aria-live="polite">
+    <h2 id="iName">Tap any part of the pen</h2>
+    <span class="pillar" id="iPillar" style="background:var(--teal)">Drag to rotate · pinch or scroll to zoom</span>
+    <h4>What it does</h4><p id="iWhat">One device that measures capillary glucose and records each insulin dose, so glucose, dose and software version are stored together for the same person.</p>
+    <h4>Data it creates</h4><p id="iData">Glucose reading, dose units and time, and the firmware and app version for every record.</p>
+    <h4>Link to our review</h4><p id="iLink">Our review found that regulators rarely link software version, patient use and clinical outcomes for the same patients over time. This concept is designed to create that linked record from day one.</p>
+    <p class="hint">Example screen values are illustrative only. This concept gives <b>no dosing advice</b>; dose decisions stay with the person and their clinician.</p>
+  </aside>
+</main>
+
+<section class="more">
+  <span class="tag">FROM REVIEW TO DESIGN</span>
+  <h2>Why a pen-meter?</h2>
+  <p class="lead">Our six-regulator review proposed following three things together after authorisation: software version, patient engagement and clinical outcomes. A connected pen-meter is one way to capture all three in a single record, for people with type 2 diabetes who use insulin.</p>
+  <div class="flow">
+    <div><b>1 · Measure</b>Test strip in the meter end gives a capillary glucose reading.</div>
+    <div><b>2 · Dose</b>The dial sensor records units and time of each injection.</div>
+    <div><b>3 · Tag</b>Every record carries the firmware and app version.</div>
+    <div><b>4 · Sync</b>Bluetooth to the app, then to the care team. A missing sync is a data gap, not proof of non-use.</div>
+    <div><b>5 · Review</b>Clinic and post-market review of version, use and outcomes together.</div>
+  </div>
+
+  <h2 style="margin-top:30px">Which build approach?</h2>
+  <p class="lead">Authors’ proposed pathway, for discussion. Device classification and combination-product rules differ by jurisdiction and must be confirmed with each regulator.</p>
+  <div class="grid3">
+    <div class="card"><span class="tag">OPTION A</span><h3>Integrated pen-meter</h3><ul><li>One device to carry; glucose and dose captured together</li><li>Hardest to build; tied to specific insulin cartridges</li><li>Heaviest regulatory and manufacturing path</li></ul></div>
+    <div class="card rec"><span class="tag">OPTION B · RECOMMENDED FIRST STEP</span><h3>Modular: smart pen attachment + connected meter or CGM</h3><ul><li>Works with existing pens and meters</li><li>Fastest way to test the linked data model in a pilot</li><li>Learn what matters before building Option A</li></ul></div>
+    <div class="card"><span class="tag">OPTION C</span><h3>App only, manual entry</h3><ul><li>Cheapest and quickest</li><li>Depends on people typing data in</li><li>Weakest link between dose, glucose and version</li></ul></div>
+  </div>
+  <h2 style="margin-top:30px">Next steps</h2>
+  <div class="flow">
+    <div><b>Prior-art check</b>Map existing smart pens, pen caps and connected meters; do not claim novelty before this.</div>
+    <div><b>User needs</b>Co-design with people with T2D, including older adults and people with low digital literacy.</div>
+    <div><b>Prototype</b>Option B, with version tagging built in.</div>
+    <div><b>Pilot</b>Prospective evaluation of the linked surveillance framework, 6–12 months, tailored to risk.</div>
+  </div>
+</section>
+<footer>
+  Concept by Vinay Janyavula and Dr. Sriroop Reddy Ramireddy, The Apollo University, presented at SHARE 2026, Monash University.<br>
+  Illustrative 3D model; not a real or approved medical device and not based on any commercial product. No dosing advice.
+</footer>
+
+<script src="vendor/three.min.js"></script>
+<script src="vendor/OrbitControls.js"></script>
+<script src="vendor/RoomEnvironment.js"></script>
+<script>
+(function(){
+'use strict';
+var P = { version:'#102F46', use:'#087F80', out:'#A8641F', safe:'#B23A48', access:'#6A5BA3' };
+var PN = { version:'Pillar 1 · Software version', use:'Pillar 2 · Patient engagement', out:'Pillar 3 · Clinical outcomes', safe:'Safety reporting', access:'Access and equity' };
+
+// ---------- component content ----------
+var INFO = {
+  cap:    {n:'Protective cap', p:'safe', what:'Covers the needle end between injections.', data:'None. Physical faults (cracks, leaks) are reported through existing device adverse-event routes.', link:'Conventional adverse-event reporting stays essential; the new data adds to it, it does not replace it.'},
+  needle: {n:'Needle hub', p:'safe', what:'Single-use pen needle screws on here before each injection.', data:'None directly. Injection problems are safety reports.', link:'Safety events keep flowing through conventional reporting, as in every jurisdiction we reviewed.'},
+  holder: {n:'Cartridge holder', p:'safe', what:'Clear window to check the insulin and remaining volume.', data:'Optional: cartridge change events.', link:'Device malfunction and use errors remain safety signals.'},
+  cart:   {n:'Insulin cartridge', p:'safe', what:'Replaceable insulin cartridge with rubber plunger.', data:'Optional: cartridge change date.', link:'If supplied with insulin, combination-product rules may apply; to be confirmed per regulator.'},
+  body:   {n:'Pen body', p:'access', what:'Houses the drive, electronics and battery. Sized and weighted like a standard pen.', data:'None directly.', link:'Our review flagged reach: older adults and people with low digital literacy must be able to use it.'},
+  display:{n:'Display', p:'access', what:'Shows last glucose reading, last dose and time since dose, in large type.', data:'Shows data; does not create it. Example values only.', link:'Access and equity: readable without a smartphone, with language and font options.'},
+  screw:  {n:'Drive and lead screw', p:'use', what:'Pushes the plunger to deliver the dialled dose.', data:'Plunger travel confirms the dose was delivered, not only dialled.', link:'Pillar 2: a record of actual use, which our review found is rarely measured consistently.'},
+  dial:   {n:'Dose dial + sensor', p:'use', what:'Dial the units; a rotary sensor records units and time of each injection.', data:'Dose units, date and time.', link:'Pillar 2, patient engagement: interruptions and missed doses become visible to the care team.'},
+  pcb:    {n:'Electronics, memory and Bluetooth', p:'version', what:'Stores readings and doses, then syncs to the app.', data:'Firmware version and app version stamped on every record.', link:'Pillar 1, software version: outcomes can be compared before and after an update.'},
+  battery:{n:'Rechargeable battery', p:'version', what:'Powers the meter, display and Bluetooth.', data:'Battery and sync status.', link:'A missing record may be a flat battery or failed sync, not non-use. Surveillance must tell these apart.'},
+  meter:  {n:'Glucose meter module', p:'out', what:'Built-in meter at the back end reads a standard test strip.', data:'Capillary glucose value, date and time.', link:'Pillar 3, clinical outcomes: glucose linked to dose and version for the same person. HbA1c still comes from the lab.'},
+  strip:  {n:'Test strip', p:'out', what:'Single-use strip inserted into the meter port.', data:'Triggers a glucose reading.', link:'Pillar 3. Meter accuracy would need its own testing before any use.'}
+};
+
+// ---------- scene ----------
+THREE.ColorManagement.legacyMode = false;
+if (new URLSearchParams(location.search).get('still') === '1') { document.body.classList.add('still'); document.documentElement.classList.add('still'); }
+if (new URLSearchParams(location.search).get('marks') === '0') document.body.classList.add('nomarks');
+if (new URLSearchParams(location.search).get('marks') === 'dots') document.body.classList.add('dots');
+var stage = document.getElementById('stage'), labels = document.getElementById('labels');
+var renderer = new THREE.WebGLRenderer({antialias:true, alpha:true, preserveDrawingBuffer:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+stage.insertBefore(renderer.domElement, labels);
+var scene = new THREE.Scene();
+var pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new THREE.RoomEnvironment(), 0.04).texture;
+var camera = new THREE.PerspectiveCamera(32, 1, 0.1, 200);
+var controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.08; controls.enablePan = false;
+controls.minDistance = 6; controls.maxDistance = 140; controls.autoRotate = true; controls.autoRotateSpeed = 0.8;
+var key = new THREE.DirectionalLight(0xffffff, 1.1); key.position.set(5, 9, 7); scene.add(key);
+scene.add(new THREE.HemisphereLight(0xffffff, 0xcfdadf, 0.35));
+
+// soft contact shadow
+(function(){ var c = document.createElement('canvas'); c.width = c.height = 256; var g = c.getContext('2d');
+  var gr = g.createRadialGradient(128,128,10,128,128,128); gr.addColorStop(0,'rgba(16,47,70,0.35)'); gr.addColorStop(1,'rgba(16,47,70,0)');
+  g.fillStyle = gr; g.fillRect(0,0,256,256);
+  var m = new THREE.Mesh(new THREE.PlaneGeometry(22, 3.2), new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c), transparent:true, depthWrite:false}));
+  m.rotation.x = -Math.PI/2; m.position.y = -2.3; scene.add(m); window.__shadow = m; })();
+
+// ---------- materials ----------
+function mat(color, o){ return new THREE.MeshPhysicalMaterial(Object.assign({color:color, roughness:0.35, metalness:0.0, clearcoat:0.4, clearcoatRoughness:0.25, envMapIntensity:0.7}, o||{})); }
+function displayTexture(lines){
+  var c = document.createElement('canvas'); c.width = 512; c.height = 200; var g = c.getContext('2d');
+  g.fillStyle = '#0d1a22'; g.fillRect(0,0,512,200);
+  g.fillStyle = '#7fe0d6'; g.font = 'bold 64px Arial'; g.fillText(lines[0], 22, 80);
+  g.fillStyle = '#ffffff'; g.font = 'bold 34px Arial'; g.fillText(lines[1], 22, 135);
+  g.fillStyle = '#9fb3bd'; g.font = '26px Arial'; g.fillText(lines[2], 22, 180);
+  var t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+}
+var SCREENS = {
+  idle: ['7.4 mmol/L','Last dose 12 U','2 h ago · example'],
+  read: ['6.8 mmol/L','Reading saved','fw 2.1 · example'],
+  dose: ['Dose 10 U','Dialled','fw 2.1 · example'],
+  done: ['10 U logged','Synced ✓','fw 2.1 · app 4.3']
+};
+
+// ---------- build pen (axis = x) ----------
+var pen = new THREE.Group(); scene.add(pen);
+var parts = {}, pickables = [];
+function part(id, home, off){ var g = new THREE.Group(); g.position.copy(home); pen.add(g);
+  parts[id] = {id:id, g:g, home:home.clone(), off:off, mats:[]}; return g; }
+function add(id, mesh){ mesh.userData.part = id; parts[id].g.add(mesh); pickables.push(mesh);
+  if (parts[id].mats.indexOf(mesh.material) < 0) parts[id].mats.push(mesh.material); return mesh; }
+function cyl(r1, r2, len, m, seg){ var geo = new THREE.CylinderGeometry(r1, r2, len, seg||64, 1); geo.rotateZ(Math.PI/2); return new THREE.Mesh(geo, m); }
+var V = function(x,y,z){ return new THREE.Vector3(x||0,y||0,z||0); };
+var R = 0.62;
+
+// cap
+(function(){ var g = part('cap', V(-6.55,0,0), V(-3.2,0,0)); var m = mat('#102F46', {roughness:0.3, clearcoat:0.8});
+  add('cap', cyl(R+0.05, R+0.05, 3.3, m)); var tip = new THREE.Mesh(new THREE.SphereGeometry(R+0.05, 48, 24, 0, Math.PI*2, 0, Math.PI/2), m);
+  tip.rotation.z = Math.PI/2; tip.position.x = -1.65; add('cap', tip);
+  var clip = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.12, 0.22), mat('#c9d3d8', {metalness:0.9, roughness:0.25})); clip.position.set(0.1, R+0.17, 0); add('cap', clip);
+  var ring = cyl(R+0.07, R+0.07, 0.12, mat('#087F80')); ring.position.x = 1.55; add('cap', ring); })();
+// needle hub + needle
+(function(){ var g = part('needle', V(-7.25,0,0), V(-1.8,0,0));
+  add('needle', cyl(0.3, 0.42, 0.55, mat('#f2f5f6', {roughness:0.5})));
+  var n = cyl(0.018, 0.018, 1.0, mat('#d9dee1', {metalness:1, roughness:0.15}), 12); n.position.x = -0.75; add('needle', n); })();
+// cartridge holder (clear)
+(function(){ var g = part('holder', V(-3.85,0,0), V(-1.0,0,0));
+  var m = mat('#dff3f4', {transparent:true, opacity:0.28, roughness:0.05, clearcoat:1, depthWrite:false});
+  add('holder', cyl(R, R, 5.5, m)); var nose = cyl(0.42, R, 0.5, mat('#e9eef0', {roughness:0.4})); nose.position.x = -2.95; add('holder', nose);
+  var band = cyl(R+0.01, R+0.01, 0.16, mat('#087F80')); band.position.x = 2.6; add('holder', band); })();
+// insulin cartridge (glass + liquid + plunger)
+(function(){ var g = part('cart', V(-3.7,0,0), V(-1.0,-1.9,0));
+  add('cart', cyl(0.44, 0.44, 4.6, mat('#ffffff', {transparent:true, opacity:0.35, roughness:0.02, clearcoat:1, depthWrite:false})));
+  var liq = cyl(0.39, 0.39, 3.6, mat('#bfe6ea', {transparent:true, opacity:0.55, roughness:0.1})); liq.position.x = -0.35; add('cart', liq);
+  var pl = cyl(0.41, 0.41, 0.35, mat('#30373b', {roughness:0.8})); pl.position.x = 1.65; add('cart', pl);
+  var crimp = cyl(0.3, 0.3, 0.25, mat('#b9c2c7', {metalness:0.9, roughness:0.3})); crimp.position.x = -2.4; add('cart', crimp); })();
+// body
+(function(){ var g = part('body', V(1.3,0,0), V(0,0,0));
+  var m = mat('#f4f7f8', {roughness:0.3, clearcoat:0.7});
+  add('body', cyl(R+0.03, R+0.03, 4.9, m));
+  var stripe = cyl(R+0.04, R+0.04, 0.12, mat('#087F80')); stripe.position.x = -2.2; add('body', stripe);
+  var grip = cyl(R+0.035, R+0.035, 1.2, mat('#d5e3e6', {roughness:0.6})); grip.position.x = 1.6; add('body', grip); })();
+// display (sits on top of body)
+var screenMat;
+(function(){ var g = part('display', V(0.9,R+0.02,0), V(0,1.25,0));
+  var bezel = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.08, 0.78), mat('#1b2a33', {roughness:0.3})); add('display', bezel);
+  screenMat = new THREE.MeshBasicMaterial({map:displayTexture(SCREENS.idle)}); screenMat.map.anisotropy = 4;
+  var sc = new THREE.Mesh(new THREE.PlaneGeometry(2.1, 0.66), screenMat); sc.rotation.x = -Math.PI/2; sc.position.y = 0.045; add('display', sc); })();
+// lead screw (inside body)
+(function(){ var g = part('screw', V(0.6,0,0), V(0,2.6,0));
+  add('screw', cyl(0.12, 0.12, 4.0, mat('#c4ccd1', {metalness:0.95, roughness:0.2}), 24));
+  for (var i = 0; i < 26; i++){ var t = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.03, 8, 20), mat('#aeb8be', {metalness:0.95, roughness:0.25})); t.rotation.y = Math.PI/2; t.rotation.x = 0.25; t.position.x = -1.9 + i*0.15; add('screw', t); }
+  var foot = cyl(0.3, 0.3, 0.12, mat('#aeb8be', {metalness:0.9, roughness:0.3})); foot.position.x = -2.05; add('screw', foot); })();
+// PCB
+(function(){ var g = part('pcb', V(1.9,0.15,0), V(0.4,4.0,0));
+  add('pcb', new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.06, 0.8), mat('#0B5E6E', {roughness:0.6})));
+  var chips = [[-0.7,0.4,0.4,'#1b1f22'],[0.1,0.5,0.35,'#22272b'],[0.85,0.35,0.3,'#d0d6da']];
+  chips.forEach(function(c){ var b = new THREE.Mesh(new THREE.BoxGeometry(c[1], 0.08, c[2]), mat(c[3], {roughness:0.4, metalness:c[3]==='#d0d6da'?0.9:0})); b.position.set(c[0], 0.07, 0); add('pcb', b); });
+  var ant = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.02, 0.12), mat('#d6b25e', {metalness:1, roughness:0.3})); ant.position.set(1.05, 0.05, 0.28); add('pcb', ant); })();
+// battery
+(function(){ var g = part('battery', V(2.3,-0.05,0), V(0.2,-2.5,0));
+  add('battery', cyl(0.36, 0.36, 1.7, mat('#2c3e4a', {roughness:0.4, clearcoat:0.6})));
+  var cap = cyl(0.3, 0.3, 0.08, mat('#c9d3d8', {metalness:0.9, roughness:0.2})); cap.position.x = 0.89; add('battery', cap);
+  var lab = cyl(0.365, 0.365, 0.5, mat('#087F80')); lab.position.x = -0.3; add('battery', lab); })();
+// dose dial (knurled)
+(function(){ var g = part('dial', V(4.45,0,0), V(1.3,0,0));
+  var m = mat('#087F80', {roughness:0.35, clearcoat:0.6});
+  add('dial', cyl(R+0.02, R+0.02, 1.3, m));
+  for (var i = 0; i < 30; i++){ var a = i/30*Math.PI*2; var k = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.07, 0.07), mat('#066a6b', {roughness:0.4}));
+    k.position.set(0, Math.cos(a)*(R+0.04), Math.sin(a)*(R+0.04)); k.rotation.x = -a; add('dial', k); }
+  var win = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.3), new THREE.MeshBasicMaterial({color:'#ffffff'})); win.rotation.y = 0; win.position.set(-0.85, 0, R+0.05);
+  parts.body.g.add(win); win.userData.part = 'body'; })();
+// meter module (back end) with strip port
+(function(){ var g = part('meter', V(5.85,0,0), V(2.6,0,0));
+  var m = mat('#102F46', {roughness:0.3, clearcoat:0.8});
+  add('meter', cyl(R+0.03, R-0.06, 1.5, m));
+  var end = new THREE.Mesh(new THREE.SphereGeometry(R-0.06, 48, 24, 0, Math.PI*2, 0, Math.PI/2), m); end.rotation.z = -Math.PI/2; end.position.x = 0.75; end.scale.set(1,0.45,1); add('meter', end);
+  var port = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.08, 0.42), mat('#0b0f12', {roughness:0.9})); port.position.set(0.98, 0, 0); add('meter', port);
+  var led = new THREE.Mesh(new THREE.SphereGeometry(0.06, 16, 12), new THREE.MeshBasicMaterial({color:'#38d6c7'})); led.position.set(0.1, R-0.02, 0.0); add('meter', led);
+  var band = cyl(R+0.04, R+0.04, 0.1, mat('#A8641F')); band.position.x = -0.7; add('meter', band); })();
+// test strip
+(function(){ var g = part('strip', V(7.55,0,0), V(3.6,0,0));
+  var s = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.03, 0.36), mat('#f7f3e8', {roughness:0.7})); add('strip', s);
+  var e = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.035, 0.08), mat('#c9a24a', {metalness:0.8, roughness:0.3})); e.position.set(-0.4, 0, 0.08); add('strip', e);
+  var e2 = e.clone(); e2.position.z = -0.08; add('strip', e2);
+  var dot = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.04, 20), mat('#A8641F', {roughness:0.6})); dot.position.set(0.68, 0.01, 0); add('strip', dot); })();
+
+pen.rotation.z = 0.0;
+var ORDER = ['cap','needle','holder','cart','body','display','screw','dial','pcb','battery','meter','strip'];
+ORDER.forEach(function(id, i){ parts[id].num = i + 1; });
+
+// strip insertion state (extra x offset)
+var stripState = { cur: 2.2, target: 2.2 };   // 2.2 = waiting outside the port; 0 = inserted
+
+// ---------- markers ----------
+ORDER.forEach(function(id){ var d = document.createElement('div'); d.className = 'mk'; d.style.background = P[INFO[id].p];
+  d.innerHTML = parts[id].num + '<span>' + INFO[id].n + '</span>'; d.title = INFO[id].n;
+  d.addEventListener('click', function(e){ e.stopPropagation(); select(id); stopTour(false); });
+  labels.appendChild(d); parts[id].mk = d; });
+var vertical = false;
+function markerAnchor(id){ var p = parts[id], box = new THREE.Box3().setFromObject(p.g); var c = box.getCenter(new THREE.Vector3());
+  if (vertical) c.x = box.max.x + 0.3; else c.y = box.max.y + 0.12; return c; }
+
+// ---------- explode ----------
+var ex = { cur: 0, target: 0 };
+function setExplode(on){ ex.target = on ? 1 : 0; var b = document.getElementById('bExplode'); b.setAttribute('aria-pressed', on); b.textContent = on ? 'Assemble' : 'Explode view'; if (tourIdx < 0) camGoal = 'home'; }
+document.getElementById('bExplode').onclick = function(){ setExplode(ex.target < 0.5); stopTour(false); };
+var ease = function(t){ return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3)/2; };
+
+// ---------- selection & highlight ----------
+var selected = null, lens = false;
+function applyTint(){
+  ORDER.forEach(function(id){ var col = lens ? new THREE.Color(P[INFO[id].p]) : new THREE.Color(0x000000);
+    var k = lens ? 0.45 : 0; if (id === selected) { col = new THREE.Color('#38d6c7'); k = 0.55; }
+    parts[id].mats.forEach(function(m){ if (m.emissive) { m.emissive.copy(col); m.emissiveIntensity = k; } });
+    parts[id].mk.classList.toggle('on', id === selected); });
+}
+var OVERVIEW = { n:'Tap any part of the pen', p:'Drag to rotate · pinch or scroll to zoom',
+  what:document.getElementById('iWhat').textContent, data:document.getElementById('iData').textContent, link:document.getElementById('iLink').textContent };
+function overview(){ selected = null; document.getElementById('iName').textContent = OVERVIEW.n; var pl = document.getElementById('iPillar'); pl.textContent = OVERVIEW.p; pl.style.background = 'var(--teal)';
+  document.getElementById('iWhat').textContent = OVERVIEW.what; document.getElementById('iData').textContent = OVERVIEW.data; document.getElementById('iLink').textContent = OVERVIEW.link; applyTint(); }
+function select(id){
+  selected = id; var I = INFO[id];
+  document.getElementById('iName').textContent = parts[id].num + '  ' + I.n;
+  var pl = document.getElementById('iPillar'); pl.textContent = PN[I.p]; pl.style.background = P[I.p];
+  document.getElementById('iWhat').textContent = I.what; document.getElementById('iData').textContent = I.data; document.getElementById('iLink').textContent = I.link;
+  applyTint();
+}
+document.getElementById('bLens').onclick = function(){ lens = !lens; this.setAttribute('aria-pressed', lens); document.getElementById('legend').style.display = lens ? 'flex' : 'none'; applyTint(); };
+document.getElementById('bNames').onclick = function(){ var on = !labels.classList.contains('show-names'); labels.classList.toggle('show-names', on); this.setAttribute('aria-pressed', on); };
+document.getElementById('bSpin').onclick = function(){ controls.autoRotate = !controls.autoRotate; this.setAttribute('aria-pressed', controls.autoRotate); };
+
+var ray = new THREE.Raycaster(), mouse = new THREE.Vector2(), down = null;
+renderer.domElement.addEventListener('pointerdown', function(e){ down = [e.clientX, e.clientY]; });
+renderer.domElement.addEventListener('pointerup', function(e){
+  if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) return;
+  var r = renderer.domElement.getBoundingClientRect(); mouse.set((e.clientX - r.left)/r.width*2 - 1, -(e.clientY - r.top)/r.height*2 + 1);
+  ray.setFromCamera(mouse, camera); var hit = ray.intersectObjects(pickables, false).filter(function(h){ return h.object.material.opacity === undefined || h.object.material.opacity > 0.3 || h.object.userData.part === 'holder'; })[0];
+  if (hit) { select(hit.object.userData.part); stopTour(false); }
+});
+
+// ---------- guided tour ----------
+var TOUR = [
+  {t:'Start: one device, three linked data streams', x:'A connected insulin pen with a built-in glucose meter. Every glucose reading and every dose is stored with the software version, for the same person.', ex:1, sel:null, scr:'idle', strip:2.2},
+  {t:'1 · Insert a test strip', x:'The strip goes into the meter port at the back end. The meter reads capillary glucose.', ex:0, sel:'strip', scr:'idle', strip:0},
+  {t:'2 · Reading saved with its version', x:'The reading appears on the display and is stored with date, time and firmware version. This is Pillar 3 (outcomes) tagged with Pillar 1 (version).', ex:0, sel:'meter', scr:'read', strip:0},
+  {t:'3 · Dial the dose', x:'The person dials the dose their care plan sets. The concept gives no dosing advice. The rotary sensor records the units.', ex:0, sel:'dial', scr:'dose', strip:2.2},
+  {t:'4 · Inject: use is recorded', x:'The drive confirms the dose was delivered, not only dialled. Timing and missed doses become visible: Pillar 2, engagement.', ex:1, sel:'screw', scr:'dose', strip:2.2},
+  {t:'5 · Sync to the app and care team', x:'Bluetooth sends records to the app. A missing sync is flagged as a data gap, because a flat battery is not the same as non-use.', ex:1, sel:'pcb', scr:'done', strip:2.2},
+  {t:'6 · Linked review after authorisation', x:'Version, use and glucose sit in one record, so a clinic and a post-market review can see whether a software update changed benefit. This is the framework from our review, built into a device.', ex:0, sel:null, lens:true, scr:'done', strip:2.2}
+];
+var tourIdx = -1, tourBar = document.getElementById('tourbar');
+function setScreen(k){ screenMat.map.dispose(); screenMat.map = displayTexture(SCREENS[k]); screenMat.needsUpdate = true; }
+function showStep(i){ tourIdx = i; var s = TOUR[i]; tourBar.style.display = 'block';
+  document.getElementById('tStep').textContent = 'HOW IT WORKS · STEP ' + (i + 1) + ' OF ' + TOUR.length;
+  document.getElementById('tTitle').textContent = s.t; document.getElementById('tText').textContent = s.x;
+  document.getElementById('tPrev').disabled = i === 0; document.getElementById('tNext').textContent = i === TOUR.length - 1 ? 'Finish' : 'Next';
+  setExplode(!!s.ex); stripState.target = s.strip; setScreen(s.scr);
+  lens = !!s.lens; document.getElementById('bLens').setAttribute('aria-pressed', lens); document.getElementById('legend').style.display = lens ? 'flex' : 'none';
+  if (s.sel) select(s.sel); else overview();
+  controls.autoRotate = false; document.getElementById('bSpin').setAttribute('aria-pressed', false);
+  camGoal = s.sel ? 'focus' : 'home'; }
+function stopTour(reset){ if (tourIdx < 0) return; tourIdx = -1; tourBar.style.display = 'none'; if (reset) { setScreen('idle'); stripState.target = 2.2; } camGoal = null; }
+document.getElementById('bTour').onclick = function(){ showStep(0); };
+document.getElementById('tNext').onclick = function(){ if (tourIdx < TOUR.length - 1) showStep(tourIdx + 1); else stopTour(true); };
+document.getElementById('tPrev').onclick = function(){ if (tourIdx > 0) showStep(tourIdx - 1); };
+document.getElementById('tClose').onclick = function(){ stopTour(true); };
+
+// ---------- camera fitting ----------
+var camGoal = 'home', homeDist = 22;
+function fit(){ var w = stage.clientWidth, h = stage.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / h;
+  vertical = camera.aspect < 0.9; pen.rotation.z = vertical ? Math.PI / 2 : 0; if (window.__shadow) window.__shadow.visible = !vertical; camGoal = camGoal || 'home';
+  camera.updateProjectionMatrix(); }
+function distFor(e){ var half = 10.8 + 4.4 * e, t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  if (vertical) return Math.max(12, half / t * 1.04, (3.2 + 3.6 * e) / (t * camera.aspect));
+  return Math.max(12, half / (t * camera.aspect) * 1.04, (2.2 + 3 * e) / t); }
+window.addEventListener('resize', fit); fit();
+homeDist = distFor(ex.cur); camera.position.set(0, vertical ? 0.85 : homeDist * 0.28, homeDist); controls.target.set(vertical ? 0 : 0.85, vertical ? 0.85 : 0.3, 0); controls.update();
+
+// ---------- loop ----------
+var clock = new THREE.Clock(), tmp = new THREE.Vector3();
+function loop(){
+  var dt = Math.min(clock.getDelta(), 0.05);
+  ex.cur += (ex.target - ex.cur) * Math.min(1, dt * 4.5); var e = ease(Math.max(0, Math.min(1, ex.cur)));
+  stripState.cur += (stripState.target - stripState.cur) * Math.min(1, dt * 4);
+  ORDER.forEach(function(id){ var p = parts[id]; p.g.position.copy(p.home).addScaledVector(p.off, e);
+    if (id === 'strip') p.g.position.x += stripState.cur; });
+  pen.position.y = Math.sin(clock.elapsedTime * 0.9) * 0.06; if (vertical && controls.autoRotate) { controls.autoRotate = false; document.getElementById('bSpin').setAttribute('aria-pressed', false); }
+  homeDist = distFor(e);
+  if (camGoal) { var aim = vertical ? V(-0.75 * e, 0.85 + 0.2 * e, 0) : V(0.85 + 0.2 * e, 0.3 + e * 0.9, 0), dist = homeDist * (camGoal === 'focus' ? 0.62 : 1);
+    if (camGoal === 'focus' && selected) { aim = markerAnchor(selected); if (vertical) aim.x -= 0.3; else aim.y -= 0.3; }
+    var want = tmp.copy(aim).add(vertical ? V(0, dist * 0.08, dist) : V(0, dist * 0.3, dist * 0.95));
+    camera.position.lerp(want, Math.min(1, dt * 2.2)); controls.target.lerp(aim, Math.min(1, dt * 2.5));
+    if (tourIdx < 0 && camera.position.distanceTo(want) < 0.05) camGoal = null; }
+  controls.update(); renderer.render(scene, camera);
+  var r = renderer.domElement, w = r.clientWidth, h = r.clientHeight;
+  ORDER.forEach(function(id){ var a = markerAnchor(id).project(camera); var mk = parts[id].mk;
+    var hide = a.z > 1 || (id === 'screw' || id === 'pcb' || id === 'battery' || id === 'cart') && e < 0.35;
+    mk.style.display = hide ? 'none' : 'flex'; mk.style.left = ((a.x + 1) / 2 * w) + 'px'; mk.style.top = ((1 - a.y) / 2 * h) + 'px'; });
+  requestAnimationFrame(loop);
+}
+// stop camera chase as soon as the user drags
+controls.addEventListener('start', function(){ camGoal = null; });
+
+// URL presets (used for still images): ?view=exploded|assembled&lens=1&names=1&spin=0
+var q = new URLSearchParams(location.search);
+if (q.get('view') === 'exploded') { ex.cur = ex.target = 1; setExplode(true); }
+if (q.get('lens') === '1') document.getElementById('bLens').click();
+if (q.get('names') === '1') document.getElementById('bNames').click();
+if (q.get('spin') === '0') document.getElementById('bSpin').click();
+if (q.get('strip') === 'in') { stripState.cur = stripState.target = 0; }
+if (q.get('screen')) setScreen(q.get('screen'));
+if (q.get('ui') === '0') { document.getElementById('toolbar').style.display = 'none'; }
+camGoal = 'home';
+(function snap(){ var e = ease(ex.cur); homeDist = distFor(e);
+  var aim = vertical ? V(-0.75 * e, 0.85 + 0.2 * e, 0) : V(0.85 + 0.2 * e, 0.3 + e * 0.9, 0);
+  camera.position.copy(aim).add(vertical ? V(0, homeDist * 0.08, homeDist) : V(0, homeDist * 0.3, homeDist * 0.95)); controls.target.copy(aim); controls.update(); })();
+loop();
+})();
+</script>
+</body>
+</html>
